@@ -515,68 +515,80 @@ const blocks = [
 		},
 	},
 	{
-		name: 'ExpressBlock_SetFavicon',
-		template: '페이지 아이콘을 %1로 바꾸기%2',
-		skeleton: 'basic',
-		color: {
-			default: '#15b01a',
-			darken: '#15b01a'
-		},
-		params: [
-			{
-				type: 'Block',
-				accept: 'string' // 이미지 파일 경로
-			},
-			{
-				type: 'Indicator',
-				img: 'block_icon/start_icon_play.svg',
-				size: 11
-			}
-		],
-		def: [
-			{
-				type: 'text',
-				params: ['/favicon.ico'] // 경로만 입력
-			},
-			null
-		],
-		map: {
-			ICON_PATH: 0
-		},
-		class: 'text',
-		func: async (sprite, script) => {
-			const path = script.getValue('ICON_PATH', script);
-
-			if (!path) return script.callReturn();
-
-			// 상대 경로 → 절대 경로로 변환
-			const url = new URL(path, window.location.origin).href;
-
-			// 기존 favicon 찾기 (없으면 생성)
-			let link =
-				document.querySelector('link[rel="icon"]') ||
-				document.querySelector('link[rel="shortcut icon"]') ||
-				document.querySelector('link[rel~="icon"]');
-
-			if (!link) {
-				link = document.createElement('link');
-				link.rel = 'icon';
-				document.head.appendChild(link);
-			}
-
-			// 확장자 기반 type 자동 설정
-			const lower = path.toLowerCase();
-			if (lower.endsWith('.png')) link.type = 'image/png';
-			else if (lower.endsWith('.svg')) link.type = 'image/svg+xml';
-			else if (lower.endsWith('.ico')) link.type = 'image/x-icon';
-			else link.removeAttribute('type');
-
-			// 캐시 방지
-			link.href = `${url}?_ts=${Date.now()}`;
-
-			return script.callReturn();
-		}
+	name: 'ExpressBlock_SetFavicon',
+	template: '페이지 아이콘을 %1로 바꾸기%2',
+	skeleton: 'basic',
+	color: {
+		default: '#15b01a',
+		darken: '#15b01a'
 	},
+	params: [
+		{
+			type: 'Block',
+			accept: 'string' // 이미지 파일 "경로" 또는 URL
+		},
+		{
+			type: 'Indicator',
+			img: 'block_icon/start_icon_play.svg',
+			size: 11
+		}
+	],
+	def: [
+		{
+			type: 'text',
+			params: ['/uploads/.../icon.png'] // 엔트리 업로드 경로 예시
+		},
+		null
+	],
+	map: {
+		ICON_PATH: 0
+	},
+	class: 'text',
+	func: async (sprite, script) => {
+		let path = script.getValue('ICON_PATH', script);
+
+		if (!path) return script.callReturn();
+		path = String(path).trim();
+
+		// 1) 엔트리 업로드 상대 경로(/uploads/...)면 playentry.org 도메인 보정
+		// 2) 이미 http(s)로 시작하면 그대로 사용
+		// 3) 그 외는 현재 origin 기준으로 절대경로 변환
+		let url;
+		if (/^https?:\/\//i.test(path)) {
+			url = path;
+		} else if (path.startsWith('/uploads/')) {
+			url = 'https://playentry.org' + path;
+		} else {
+			url = new URL(path, window.location.origin).href;
+		}
+
+		// 기존 favicon link 찾기(없으면 생성)
+		let link =
+			document.querySelector('link[rel="icon"]') ||
+			document.querySelector('link[rel="shortcut icon"]') ||
+			document.querySelector('link[rel~="icon"]');
+
+		if (!link) {
+			link = document.createElement('link');
+			link.rel = 'icon';
+			document.head.appendChild(link);
+		}
+
+		// 확장자 기반 type 자동 설정
+		const lower = path.toLowerCase();
+		if (lower.endsWith('.png')) link.type = 'image/png';
+		else if (lower.endsWith('.svg')) link.type = 'image/svg+xml';
+		else if (lower.endsWith('.ico')) link.type = 'image/x-icon';
+		else link.removeAttribute('type');
+
+		// 캐시 방지(기존 쿼리가 있으면 & 로)
+		const sep = url.includes('?') ? '&' : '?';
+		link.href = `${url}${sep}_ts=${Date.now()}`;
+
+		return script.callReturn();
+	}
+},
+
 
 	{
 		name: 'ExpressBlock_GetPageTitle',
