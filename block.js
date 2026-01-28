@@ -515,6 +515,70 @@ const blocks = [
 		},
 	},
 	{
+	name: 'ExpressBlock_SetFavicon',
+	template: '페이지 아이콘을 %1로 바꾸기%2',
+	skeleton: 'basic',
+	color: {
+		default: '#15b01a',
+		darken: '#15b01a'
+	},
+	params: [
+		{
+			type: 'Block',
+			accept: 'string' // 이미지 파일 경로
+		},
+		{
+			type: 'Indicator',
+			img: 'block_icon/start_icon_play.svg',
+			size: 11
+		}
+	],
+	def: [
+		{
+			type: 'text',
+			params: ['/favicon.ico'] // 경로만 입력
+		},
+		null
+	],
+	map: {
+		ICON_PATH: 0
+	},
+	class: 'text',
+	func: async (sprite, script) => {
+		const path = script.getValue('ICON_PATH', script);
+
+		if (!path) return script.callReturn();
+
+		// 상대 경로 → 절대 경로로 변환
+		const url = new URL(path, window.location.origin).href;
+
+		// 기존 favicon 찾기 (없으면 생성)
+		let link =
+			document.querySelector('link[rel="icon"]') ||
+			document.querySelector('link[rel="shortcut icon"]') ||
+			document.querySelector('link[rel~="icon"]');
+
+		if (!link) {
+			link = document.createElement('link');
+			link.rel = 'icon';
+			document.head.appendChild(link);
+		}
+
+		// 확장자 기반 type 자동 설정
+		const lower = path.toLowerCase();
+		if (lower.endsWith('.png')) link.type = 'image/png';
+		else if (lower.endsWith('.svg')) link.type = 'image/svg+xml';
+		else if (lower.endsWith('.ico')) link.type = 'image/x-icon';
+		else link.removeAttribute('type');
+
+		// 캐시 방지
+		link.href = `${url}?_ts=${Date.now()}`;
+
+		return script.callReturn();
+	}
+},
+
+	{
 		name: 'ExpressBlock_GetPageTitle',
 		template: '페이지 제목',
 		skeleton: 'basic_string_field',
