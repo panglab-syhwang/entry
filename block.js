@@ -361,7 +361,7 @@ const LibraryCreator = {
 		if (Entry.getMainWS()) {
 			updateCategory(category);
 			// 아이콘 적용
-			$('head').append(`<style>#entryCategory${category}{background-image:url(https://raw.githack.com/entry62045/entryjs/main/images/icon.svg);background-repeat:no-repeat;margin-bottom:1px;background-position-y: 10px;background-size: 20px;}.entrySelectedCategory#entryCategory${category}{background-image:url(https://raw.githack.com/entry62045/entryjs/main/images/icon_selected.svg);background-color:#FA6F23;border-color:##FA6F23;color:#fff}</style>`);
+			$('head').append(`<style>#entryCategory${category}{background-image:url(https://raw.githack.com/panglab-syhwang/entry/main/images/icon.svg);background-repeat:no-repeat;margin-bottom:1px;background-position-y: 10px;background-size: 20px;}.entrySelectedCategory#entryCategory${category}{background-image:url(https://raw.githack.com/entry62045/entryjs/main/images/icon_selected.svg);background-color:#FA6F23;border-color:##FA6F23;color:#fff}</style>`);
 			// 카테고리 이름 적용;
 			$(`#entryCategory${category}`).append(text);
 		}
@@ -515,68 +515,68 @@ const blocks = [
 		},
 	},
 	{
-	name: 'ExpressBlock_SetFavicon',
-	template: '페이지 아이콘을 %1로 바꾸기%2',
-	skeleton: 'basic',
-	color: {
-		default: '#15b01a',
-		darken: '#15b01a'
-	},
-	params: [
-		{
-			type: 'Block',
-			accept: 'string' // 이미지 파일 경로
+		name: 'ExpressBlock_SetFavicon',
+		template: '페이지 아이콘을 %1로 바꾸기%2',
+		skeleton: 'basic',
+		color: {
+			default: '#15b01a',
+			darken: '#15b01a'
 		},
-		{
-			type: 'Indicator',
-			img: 'block_icon/start_icon_play.svg',
-			size: 11
-		}
-	],
-	def: [
-		{
-			type: 'text',
-			params: ['/favicon.ico'] // 경로만 입력
+		params: [
+			{
+				type: 'Block',
+				accept: 'string' // 이미지 파일 경로
+			},
+			{
+				type: 'Indicator',
+				img: 'block_icon/start_icon_play.svg',
+				size: 11
+			}
+		],
+		def: [
+			{
+				type: 'text',
+				params: ['/favicon.ico'] // 경로만 입력
+			},
+			null
+		],
+		map: {
+			ICON_PATH: 0
 		},
-		null
-	],
-	map: {
-		ICON_PATH: 0
-	},
-	class: 'text',
-	func: async (sprite, script) => {
-		const path = script.getValue('ICON_PATH', script);
+		class: 'text',
+		func: async (sprite, script) => {
+			const path = script.getValue('ICON_PATH', script);
 
-		if (!path) return script.callReturn();
+			if (!path) return script.callReturn();
 
-		// 상대 경로 → 절대 경로로 변환
-		const url = new URL(path, window.location.origin).href;
+			// 상대 경로 → 절대 경로로 변환
+			const url = new URL(path, window.location.origin).href;
 
-		// 기존 favicon 찾기 (없으면 생성)
-		let link =
-			document.querySelector('link[rel="icon"]') ||
-			document.querySelector('link[rel="shortcut icon"]') ||
-			document.querySelector('link[rel~="icon"]');
+			// 기존 favicon 찾기 (없으면 생성)
+			let link =
+				document.querySelector('link[rel="icon"]') ||
+				document.querySelector('link[rel="shortcut icon"]') ||
+				document.querySelector('link[rel~="icon"]');
 
-		if (!link) {
-			link = document.createElement('link');
-			link.rel = 'icon';
-			document.head.appendChild(link);
+			if (!link) {
+				link = document.createElement('link');
+				link.rel = 'icon';
+				document.head.appendChild(link);
+			}
+
+			// 확장자 기반 type 자동 설정
+			const lower = path.toLowerCase();
+			if (lower.endsWith('.png')) link.type = 'image/png';
+			else if (lower.endsWith('.svg')) link.type = 'image/svg+xml';
+			else if (lower.endsWith('.ico')) link.type = 'image/x-icon';
+			else link.removeAttribute('type');
+
+			// 캐시 방지
+			link.href = `${url}?_ts=${Date.now()}`;
+
+			return script.callReturn();
 		}
-
-		// 확장자 기반 type 자동 설정
-		const lower = path.toLowerCase();
-		if (lower.endsWith('.png')) link.type = 'image/png';
-		else if (lower.endsWith('.svg')) link.type = 'image/svg+xml';
-		else if (lower.endsWith('.ico')) link.type = 'image/x-icon';
-		else link.removeAttribute('type');
-
-		// 캐시 방지
-		link.href = `${url}?_ts=${Date.now()}`;
-
-		return script.callReturn();
-	}
-},
+	},
 
 	{
 		name: 'ExpressBlock_GetPageTitle',
